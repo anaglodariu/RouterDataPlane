@@ -1,0 +1,27 @@
+Tema implementare:
+- prima oara verific daca pachetul primit este malformat (daca este il arunc)
+- verific daca adresa mac destinatie a pachetului corespunde adresei interfetei pe care a venit pachetul
+sau daca e arp request iar adresa mac destinatie e de tip broadcast
+- dupa inspectez fiecare header din pachet
+- daca este pachet de tip arp avem 2 cazuri:
+          - fie este un arp request -> trimit un arp reply inapoi, completand adresa mac pe care nu o stiam
+          - fie este un arp reply -> adaug adresa mac pe care nu o stiam in tabela arp si trimit pachetul din coada
+- daca este pachet de tip ip:
+          - verific daca contine un mesaj de tip icmp echo request -> trimit inapoi un icmp echo reply
+          - verific checksum-ul pachetului
+          - verific ttl-ul pachetului si daca e prea mic, creez un pachet de tip icmp time exceeded
+          - verific daca gasesc o ruta pentru pachetul primit in tabela de rutare
+                    - daca nu gasesc o ruta, creez un pachet de tip icmp destination unreachable
+          - verific daca gasesc adresa mac a urmatorului hop (gasit la pasul anterior) in tabela arp
+                    - daca nu gasesc, creez un arp request si pun pachetul in coada
+                    - in coada de pachete retin continutul pachetului, lungimea lui si informatiile despre urmatorul hop
+                      pentru a nu mai apela din nou mai tarziu functia de gasire a urmatorului hop
+          - daca am gasit adresa mac a urmatorului hop in tabela arp
+                    - nu mai e nevoie de coada de pachete, trimit pachetul direct catre urmatorul hop
+- algoritmul lpm pentru gasirea celei mai bune rute am facut-o cu cautare binara
+      - mai intai am sortat cu quicksort tabela de rutare (crescator dupa masca si daca sunt egale
+      mastile, crescator dupa prefix) (noua ne trebuie ruta cu masca cea mai mare)
+      - apoi am cautat cu cautare binara in tabela de rutare
+              - cand dau de un prefix si o masca care sa respecte conditia din if: prefix == dest_ip & mask
+                caut si liniar intre left si right pentru a ma asigura ca gasesc prefixul corect cu cea mai mare masca
+
